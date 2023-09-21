@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Blog.Controllers
 {
     [ApiController]
+    [Route("v1")]
     public class CategoryController : ControllerBase
     {
         [HttpGet("categories")]
