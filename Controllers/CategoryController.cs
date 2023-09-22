@@ -1,4 +1,5 @@
 ﻿using Blog.Data;
+using Blog.Extensions;
 using Blog.Models;
 using Blog.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -16,18 +17,13 @@ namespace Blog.Controllers
             try
             {
                 var categories = await context.Categories.ToListAsync();
-                return Ok(categories);
+                return Ok(new ResultViewModel<List<Category>>(categories));
             }
-            catch (DbUpdateException ex)
+            catch
             {
-                return StatusCode(500, $"Não foi possivel buscar as categorias. ERRO:{ex.Message}");
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, $"Falha interna no servidor. ERRO:{e.Message}");
+                return StatusCode(500, new ResultViewModel<List<Category>>("Falha interna no servidor."));
             }
         }
-
         [HttpGet("categories/{id:int}")]
         public async Task<IActionResult> GetAsync([FromRoute] int id,
                                                   [FromServices] BlogDataContext context)
@@ -36,20 +32,20 @@ namespace Blog.Controllers
             {
                 var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
                 if (category == null)
-                {
-                    return NotFound();
-                }
-                return Ok(category);
+                    return NotFound(new ResultViewModel<Category>("Conteudo não encontrado."));
+                return Ok(new ResultViewModel<Category>(category));
             }
-            catch (Exception e)
+            catch
             {
-                return StatusCode(500, $"Falha interna no servidor. ERRO:{e.Message}");
+                return StatusCode(500, new ResultViewModel<List<Category>>("Falha interna no servidor."));
             }
         }
         [HttpPost("categories")]
         public async Task<IActionResult> PostAsync([FromBody] EditorCategoryViewModel model,
                                                    [FromServices] BlogDataContext context)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new ResultViewModel<Category>(ModelState.GetErrors()));
             try
             {
                 var category = new Category
@@ -62,11 +58,15 @@ namespace Blog.Controllers
                 await context.Categories.AddAsync(category);
                 await context.SaveChangesAsync();
 
-                return Created($"v1/categories/{category.Id}", category);
+                return Created($"v1/categories/{category.Id}", new ResultViewModel<Category>(category));
             }
-            catch (Exception e)
+            catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"Falha interna no servidor. ERRO:{e.Message}");
+                return StatusCode(500, new ResultViewModel<Category>("Não foi possivel Inserir a categoria."));
+            }
+            catch
+            {
+                return StatusCode(500, new ResultViewModel<Category>("Falha interna no servidor."));
             }
         }
         [HttpPut("categories")]
@@ -78,24 +78,22 @@ namespace Blog.Controllers
             {
                 var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
                 if (category == null)
-                {
-                    return NotFound();
-                }
+                    return NotFound(new ResultViewModel<Category>("Conteudo não encontrado."));
                 category.Name = model.Name;
                 category.Slug = model.Slug;
 
                 context.Categories.Update(category);
                 await context.SaveChangesAsync();
 
-                return Ok(model);
+                return Ok(new ResultViewModel<Category>(category));
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"Não foi possivel alterar a categoria. ERRO:{ex.Message}");
+                return StatusCode(500, new ResultViewModel<Category>("Não foi possivel alterar a categoria."));
             }
-            catch (Exception e)
+            catch
             {
-                return StatusCode(500, $"Falha interna no servidor. ERRO:{e.Message}");
+                return StatusCode(500, new ResultViewModel<List<Category>>("Falha interna no servidor."));
             }
         }
         [HttpDelete("categories")]
@@ -106,9 +104,7 @@ namespace Blog.Controllers
             {
                 var category = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
                 if (category == null)
-                {
-                    return NotFound();
-                }
+                    return NotFound(new ResultViewModel<Category>("Conteudo não encontrado."));
                 context.Categories.Remove(category);
                 await context.SaveChangesAsync();
 
@@ -116,11 +112,11 @@ namespace Blog.Controllers
             }
             catch (DbUpdateException ex)
             {
-                return StatusCode(500, $"Não foi possivel deletar a categoria. ERRO:{ex.Message}");
+                return StatusCode(500, new ResultViewModel<Category>("Não foi possivel deletar a categoria."));
             }
-            catch (Exception e)
+            catch
             {
-                return StatusCode(500, $"Falha interna no servidor. ERRO:{e.Message}");
+                return StatusCode(500, new ResultViewModel<List<Category>>("Falha interna no servidor."));
             }
         }
     }
