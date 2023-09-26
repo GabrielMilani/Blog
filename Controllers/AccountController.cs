@@ -3,12 +3,14 @@ using Blog.Extensions;
 using Blog.Models;
 using Blog.Services;
 using Blog.ViewModels;
+using Blog.ViewModels.Accounts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
 using SecureIdentity.Password;
+using System.Text.RegularExpressions;
 
 namespace Blog.Controllers
 {
@@ -77,15 +79,38 @@ namespace Blog.Controllers
             }
 
         }
-        
-      //  [Authorize(Roles = "user")]
-      //  [HttpGet("user")]
-      //  public IActionResult GetUser() => Ok(User.Identity.Name);
-      //  [Authorize(Roles = "author")]
-      //  [HttpGet("author")]
-      //  public IActionResult GetAuthor() => Ok(User.Identity.Name);
-     //   [Authorize(Roles = "admin")]
-      //  [HttpGet("admin")]
-      //  public IActionResult GetAdmin() => Ok(User.Identity.Name);
+        [Authorize]
+        [HttpPost("accounts/upload-image")]
+        public async Task<IActionResult> UploadImage([FromBody]UploadImageViewModel model,
+                                                     [FromServices]BlogDataContext context)
+        {
+            var fileName = $"{Guid.NewGuid().ToString()}.jpg";
+            var data = new Regex(@"^data:imageV[a-z]+;base60,").Replace(model.Base64Image, "");
+            var bytes = Convert.FromBase64String(data);
+            try
+            {
+                await System.IO.File.WriteAllBytesAsync($"wwwroot/images/{fileName}", bytes);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResultViewModel<string>("Falha interna do servidor."));
+            }
+            var user = await context.Users.FirstOrDefaultAsync(x => x.Email == User.Identity.Name);
+            if (user == null)
+            {
+                return NotFound(new ResultViewModel<User>("Usuário não encontrado."));
+            }
+            user.Image = $"https://localhost:0000/images/{fileName}";
+            try
+            {
+                context.Users.Update(user);
+                await context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new ResultViewModel<string>("Falha interna do servidor."));
+            }
+            return Ok(new ResultViewModel<string>("Imagem alterada com sucesso!", null));
+        }
     }
 }
