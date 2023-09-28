@@ -13,16 +13,21 @@ var builder = WebApplication.CreateBuilder(args);
 ConfigureAuthentication(builder);
 ConfigureMvc(builder);
 ConfigureServices(builder);
+ConfigureSwagger(builder);
 
 var app = builder.Build();
 
 LoadConfiguration(app);
 
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseResponseCompression();
 app.UseStaticFiles();
 app.MapControllers();
+
+LoadConfigurationSwagger(app);
+
 app.Run();
 
 void LoadConfiguration(WebApplication app)
@@ -34,6 +39,14 @@ void LoadConfiguration(WebApplication app)
     var smtp = new Configuration.SmtpConfiguration();
     app.Configuration.GetSection("SmtpConfiguration").Bind(smtp);
     Configuration.Smtp = smtp;
+}
+void LoadConfigurationSwagger(WebApplication app)
+{
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
 }
 void ConfigureAuthentication(WebApplicationBuilder builder)
 {
@@ -80,4 +93,9 @@ void ConfigureServices(WebApplicationBuilder builder)
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
     builder.Services.AddDbContext<BlogDataContext>(options => options.UseSqlServer(connectionString));
     builder.Services.AddTransient<TokenService>();
+}
+void ConfigureSwagger(WebApplicationBuilder builder)
+{
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
 }
