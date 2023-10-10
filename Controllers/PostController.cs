@@ -8,13 +8,12 @@ using Microsoft.EntityFrameworkCore;
 namespace Blog.Controllers
 {
     [ApiController]
-    [Route("v1")]
     public class PostController : ControllerBase
     {
-        [HttpGet("posts")]
-        public async Task<IActionResult> GetAsync([FromServices]BlogDataContext context,
-                                                  [FromQuery]int page = 0,
-                                                  [FromQuery]int pageSize = 25)
+        [HttpGet("v1/posts")]
+        public async Task<IActionResult> GetAsync([FromServices] BlogDataContext context,
+                                                  [FromQuery] int page = 0,
+                                                  [FromQuery] int pageSize = 25)
         {
             try
             {
@@ -33,7 +32,7 @@ namespace Blog.Controllers
                                                })
                                                .Skip(page * pageSize)
                                                .Take(pageSize)
-                                               .OrderByDescending(x => x.LastUpdateDate)  
+                                               .OrderByDescending(x => x.LastUpdateDate)
                                                .ToListAsync();
 
                 return Ok(new ResultViewModel<dynamic>(new
@@ -45,11 +44,11 @@ namespace Blog.Controllers
                 }));
             }
             catch (Exception)
-            {  
-                return StatusCode(500, new ResultViewModel<Post>("Falha interna no servidor."));   
+            {
+                return StatusCode(500, new ResultViewModel<Post>("Falha interna no servidor."));
             }
         }
-        [HttpGet("posts/{id:int}")]
+        [HttpGet("v1/posts/{id:int}")]
         public async Task<IActionResult> DetailAsync([FromServices] BlogDataContext context,
                                                      [FromRoute] int id)
         {
@@ -70,7 +69,7 @@ namespace Blog.Controllers
                 return StatusCode(500, new ResultViewModel<Post>("Falha interna no servidor."));
             }
         }
-        [HttpGet("posts/category/{category}")]
+        [HttpGet("v1/posts/category/{category}")]
         public async Task<IActionResult> GetByCategoryAsync([FromServices] BlogDataContext context,
                                                             [FromRoute] string category,
                                                             [FromQuery] int page = 0,

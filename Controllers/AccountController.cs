@@ -5,21 +5,18 @@ using Blog.Services;
 using Blog.ViewModels;
 using Blog.ViewModels.Accounts;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using SecureIdentity.Password;
 using System.Text.RegularExpressions;
 
 namespace Blog.Controllers
 {
     [ApiController]
-    [Route("v1")]
     public class AccountController : ControllerBase
     {
 
-        [HttpPost("accounts")]
+        [HttpPost("v1/accounts")]
         public async Task<IActionResult> Post([FromBody] RegisterViewModel model,
                                               [FromServices] BlogDataContext context)
         {
@@ -53,7 +50,7 @@ namespace Blog.Controllers
             }
         }
 
-        [HttpPost("accounts/login")]
+        [HttpPost("v1/accounts/login")]
         public async Task<IActionResult> Login([FromBody] LoginViewModel model,
                                                [FromServices] BlogDataContext context,
                                                [FromServices] TokenService tokenService)
@@ -74,15 +71,15 @@ namespace Blog.Controllers
                 return Ok(new ResultViewModel<string>(token, null));
             }
             catch (Exception)
-            { 
+            {
                 return StatusCode(500, new ResultViewModel<string>("Falha interna no servidor."));
             }
 
         }
         [Authorize]
-        [HttpPost("accounts/upload-image")]
-        public async Task<IActionResult> UploadImage([FromBody]UploadImageViewModel model,
-                                                     [FromServices]BlogDataContext context)
+        [HttpPost("v1/accounts/upload-image")]
+        public async Task<IActionResult> UploadImage([FromBody] UploadImageViewModel model,
+                                                     [FromServices] BlogDataContext context)
         {
             var fileName = $"{Guid.NewGuid().ToString()}.jpg";
             var data = new Regex(@"^data:imageV[a-z]+;base60,").Replace(model.Base64Image, "");

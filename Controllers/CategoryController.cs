@@ -10,10 +10,9 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Blog.Controllers
 {
     [ApiController]
-    [Route("v1")]
     public class CategoryController : ControllerBase
     {
-        [HttpGet("categories")]
+        [HttpGet("v1/categories")]
         public async Task<IActionResult> GetAsync([FromServices] BlogDataContext context,
                                                   [FromServices] IMemoryCache cache)
         {
@@ -35,7 +34,7 @@ namespace Blog.Controllers
         {
             return context.Categories.ToList();
         }
-        [HttpGet("categories/{id:int}")]
+        [HttpGet("v1/categories/{id:int}")]
         public async Task<IActionResult> GetAsync([FromRoute] int id,
                                                   [FromServices] BlogDataContext context)
         {
@@ -51,7 +50,7 @@ namespace Blog.Controllers
                 return StatusCode(500, new ResultViewModel<List<Category>>("Falha interna no servidor."));
             }
         }
-        [HttpPost("categories")]
+        [HttpPost("v1/categories")]
         public async Task<IActionResult> PostAsync([FromBody] EditorCategoryViewModel model,
                                                    [FromServices] BlogDataContext context)
         {
@@ -80,7 +79,7 @@ namespace Blog.Controllers
                 return StatusCode(500, new ResultViewModel<Category>("Falha interna no servidor."));
             }
         }
-        [HttpPut("categories")]
+        [HttpPut("v1/categories/{id:int}")]
         public async Task<IActionResult> PutAsync([FromRoute] int id,
                                                   [FromBody] EditorCategoryViewModel model,
                                                   [FromServices] BlogDataContext context)
@@ -107,7 +106,7 @@ namespace Blog.Controllers
                 return StatusCode(500, new ResultViewModel<List<Category>>("Falha interna no servidor."));
             }
         }
-        [HttpDelete("categories")]
+        [HttpDelete("v1/categories/{id:int}")]
         public async Task<IActionResult> DeleteAsync([FromRoute] int id,
                                                      [FromServices] BlogDataContext context)
         {
